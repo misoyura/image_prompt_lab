@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>오늘의 이미지 프롬프트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --card: #ffffff;
+    --text: #1b2236;
+    --muted: #6b7489;
+    --line: #e4e7ef;
+    --navy: #1f3a6e;
+    --blue: #2f6bff;
+    --blue-soft: #eaf0ff;
+    --mark: #fff1c2;
+    --mark-text: #7a4b00;
+    --code-bg: #f8f9fc;
+    --shadow: 0 1px 2px rgba(20,30,60,.05), 0 6px 20px rgba(20,30,60,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1420; --card: #171e2d; --text: #e8ecf5; --muted: #98a2b8;
+      --line: #273148; --navy: #9db8ff; --blue: #6f97ff; --blue-soft: #1d2a48;
+      --mark: #4a3a10; --mark-text: #ffd978; --code-bg: #121927;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Noto Sans KR", system-ui, sans-serif; line-height: 1.6;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+
+  header { padding: 44px 0 20px; }
+  .eyebrow { color: var(--blue); font-weight: 700; font-size: 13px; letter-spacing: .08em; }
+  h1 { margin: 4px 0 6px; font-size: clamp(26px, 4vw, 36px); color: var(--navy); font-weight: 800; letter-spacing: -.02em; }
+  .sub { margin: 0; color: var(--muted); font-size: 15px; }
+
+  .toolbar {
+    position: sticky; top: 0; z-index: 5; background: var(--bg);
+    padding: 12px 0; border-bottom: 1px solid var(--line); margin-bottom: 22px;
+  }
+  .search {
+    width: 100%; padding: 12px 14px; font: inherit; font-size: 15px;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--text);
+  }
+  .search:focus { outline: 2px solid var(--blue); outline-offset: -1px; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .chip {
+    border: 1px solid var(--line); background: var(--card); color: var(--muted);
+    padding: 6px 12px; border-radius: 999px; font: inherit; font-size: 13px; cursor: pointer;
+  }
+  .chip.on { background: var(--navy); border-color: var(--navy); color: var(--card); font-weight: 700; }
+  .count { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 20px; padding-bottom: 60px; }
+  @media (max-width: 400px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column;
+  }
+  .thumb { aspect-ratio: 4 / 3; background: var(--code-bg); cursor: zoom-in; overflow: hidden; border-bottom: 1px solid var(--line); }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .3s; }
+  .thumb:hover img { transform: scale(1.03); }
+  .thumb.empty { display: grid; place-items: center; color: var(--muted); font-size: 13px; cursor: default; }
+
+  .body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .meta { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+  .tag { background: var(--blue-soft); color: var(--blue); padding: 2px 8px; border-radius: 6px; font-weight: 700; }
+  .new { background: #ff4d6d; color: #fff; padding: 1px 7px; border-radius: 6px; font-weight: 800; font-size: 11px; }
+  h2 { margin: 0; font-size: 18px; letter-spacing: -.01em; }
+  .tip { margin: 0; font-size: 13px; color: var(--muted); }
+  .tip::before { content: "💡 "; }
+
+  .prompt {
+    position: relative; background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 14px; font-size: 13.5px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: anywhere;
+    max-height: 168px; overflow: hidden;
+  }
+  .prompt.open { max-height: none; }
+  .prompt:not(.open)::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 48px;
+    background: linear-gradient(transparent, var(--code-bg));
+  }
+  .ph { background: var(--mark); color: var(--mark-text); border-radius: 4px; padding: 0 2px; font-weight: 700; }
+
+  .actions { display: flex; gap: 8px; margin-top: auto; }
+  .btn {
+    font: inherit; font-size: 14px; border-radius: 10px; cursor: pointer; padding: 10px 14px;
+    border: 1px solid var(--line); background: var(--card); color: var(--text);
+  }
+  .btn.copy { flex: 1; background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 700; }
+  .btn.copy.done { background: #18a058; border-color: #18a058; }
+  .btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  .empty-state { grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 60px 0; }
+
+  .lightbox {
+    position: fixed; inset: 0; background: rgba(5,10,20,.85); display: none;
+    align-items: center; justify-content: center; padding: 16px; z-index: 20; cursor: zoom-out;
+  }
+  .lightbox.show { display: flex; }
+  .lightbox img { max-width: 100%; max-height: 100%; border-radius: 8px; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px); opacity: 0;
+    background: var(--text); color: var(--bg); padding: 10px 18px; border-radius: 999px;
+    font-size: 14px; font-weight: 700; transition: all .25s; pointer-events: none; z-index: 30;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 0 0 32px; }
+</style>
+</head>
+<body>
+  <header class="wrap">
+    <div class="eyebrow">DAILY IMAGE PROMPT</div>
+    <h1>오늘의 이미지 프롬프트</h1>
+    <p class="sub">마음에 드는 프롬프트의 <b>복사하기</b>를 눌러 바로 붙여 넣어 쓰세요. <span class="ph">[노란 부분]</span>은 원하는 내용으로 바꿔 쓰는 자리예요.</p>
+  </header>
+
+  <div class="toolbar">
+    <div class="wrap">
+      <input class="search" id="q" type="search" placeholder="프롬프트 검색 (예: 캐릭터, 도시락, 가을)">
+      <div class="chips" id="chips"></div>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <p class="count" id="count"></p>
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <footer>매일 새로운 이미지 프롬프트가 업데이트됩니다.</footer>
+
+  <div class="lightbox" id="lightbox"><img alt=""></div>
+  <div class="toast" id="toast">복사했어요!</div>
+
+<script src="prompts.js"></script>
+<script>
+  const grid = document.getElementById("grid");
+  const chipsEl = document.getElementById("chips");
+  const q = document.getElementById("q");
+  const countEl = document.getElementById("count");
+  const toast = document.getElementById("toast");
+  const lightbox = document.getElementById("lightbox");
+
+  const items = PROMPTS.map((p, i) => ({ ...p, id: i }))
+    .sort((a, b) => (b.date || "").localeCompare(a.date || "") || a.id - b.id);
+  const latest = items.length ? items[0].date : "";
+  const categories = ["전체", ...new Set(items.map(p => p.category).filter(Boolean))];
+  let activeCat = "전체";
+
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const highlight = s => esc(s).replace(/\[[^\]\n]+\]/g, m => `<span class="ph">${m}</span>`);
+  const fmtDate = d => d ? d.replace(/-/g, ".") : "";
+
+  function renderChips() {
+    chipsEl.innerHTML = categories.map(c =>
+      `<button class="chip ${c === activeCat ? "on" : ""}" data-cat="${esc(c)}">${esc(c)}</button>`).join("");
+  }
+
+  function render() {
+    const term = q.value.trim().toLowerCase();
+    const list = items.filter(p =>
+      (activeCat === "전체" || p.category === activeCat) &&
+      (!term || [p.title, p.prompt, p.category, p.tip].join(" ").toLowerCase().includes(term)));
+
+    countEl.textContent = `프롬프트 ${list.length}개`;
+    if (!list.length) { grid.innerHTML = `<div class="empty-state">검색 결과가 없어요.</div>`; return; }
+
+    grid.innerHTML = list.map(p => `
+      <article class="card">
+        ${p.image
+          ? `<div class="thumb" data-img="${esc(p.image)}"><img src="${esc(p.image)}" alt="${esc(p.title)} 예시 이미지" loading="lazy"></div>`
+          : `<div class="thumb empty">예시 이미지 없음</div>`}
+        <div class="body">
+          <div class="meta">
+            ${p.date === latest ? `<span class="new">NEW</span>` : ""}
+            ${p.category ? `<span class="tag">${esc(p.category)}</span>` : ""}
+            <span>${fmtDate(p.date)}</span>
+          </div>
+          <h2>${esc(p.title)}</h2>
+          ${p.tip ? `<p class="tip">${esc(p.tip)}</p>` : ""}
+          <div class="prompt" id="pr-${p.id}">${highlight(p.prompt.trim())}</div>
+          <div class="actions">
+            <button class="btn copy" data-copy="${p.id}">📋 복사하기</button>
+            <button class="btn" data-toggle="${p.id}">전체 보기</button>
+          </div>
+        </div>
+      </article>`).join("");
+  }
+
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); return true; }
+    catch {
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      const ok = document.execCommand("copy"); ta.remove(); return ok;
+    }
+  }
+
+  function showToast(msg) {
+    toast.textContent = msg; toast.classList.add("show");
+    clearTimeout(showToast.t); showToast.t = setTimeout(() => toast.classList.remove("show"), 1600);
+  }
+
+  chipsEl.addEventListener("click", e => {
+    const b = e.target.closest(".chip"); if (!b) return;
+    activeCat = b.dataset.cat; renderChips(); render();
+  });
+  q.addEventListener("input", render);
+
+  grid.addEventListener("click", async e => {
+    const copyBtn = e.target.closest("[data-copy]");
+    if (copyBtn) {
+      const p = items.find(x => x.id == copyBtn.dataset.copy);
+      const ok = await copyText(p.prompt.trim());
+      showToast(ok ? "복사했어요! 붙여 넣어 사용하세요" : "프롬프트를 선택해 두었어요. Ctrl+C 로 복사하세요");
+      if (!ok) {
+        const el = document.getElementById("pr-" + p.id);
+        el.classList.add("open");
+        const range = document.createRange(); range.selectNodeContents(el);
+        const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
+      }
+      if (ok) {
+        copyBtn.classList.add("done"); copyBtn.textContent = "✓ 복사 완료";
+        setTimeout(() => { copyBtn.classList.remove("done"); copyBtn.textContent = "📋 복사하기"; }, 1800);
+      }
+      return;
+    }
+    const tg = e.target.closest("[data-toggle]");
+    if (tg) {
+      const el = document.getElementById("pr-" + tg.dataset.toggle);
+      const open = el.classList.toggle("open");
+      tg.textContent = open ? "접기" : "전체 보기";
+      return;
+    }
+    const th = e.target.closest(".thumb[data-img]");
+    if (th) { lightbox.querySelector("img").src = th.dataset.img; lightbox.classList.add("show"); }
+  });
+  lightbox.addEventListener("click", () => lightbox.classList.remove("show"));
+  document.addEventListener("keydown", e => { if (e.key === "Escape") lightbox.classList.remove("show"); });
+
+  renderChips(); render();
+</script>
+</body>
+</html>
